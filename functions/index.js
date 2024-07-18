@@ -9,13 +9,35 @@ const db = admin.firestore();
 exports.scraper = functions
     .region('us-west2')
     .runWith({memory: '2GB'})
-    .scraper.schedule("0 0 * * *")
+    .pubsub.schedule("0 0 * * *")
     .timeZone("America/Los_Angeles")
     .onRun(async () => {
 
       let browser;
       let page;
-      let docRef;
+      const batch = db.batch();
+
+      async function addArticleIfNotExists(title, data) {
+        const docRef = db.collection("news").doc(shortenDocId(title));
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+          batch.set(docRef, data);
+        }
+      }
+
+      function shortenDocId(title) {
+        const maxBytes = 1500;
+        let bytes = Buffer.byteLength(title, 'utf8');
+        if (bytes < maxBytes) return title;
+
+        while (bytes > maxBytes) {
+          title = title.slice(0, -1);
+          bytes = buffer.byteLength(title, 'utf8');
+        }
+
+        return title;
+      }
 
       try {
         browser = await puppeteer.launch({
@@ -36,12 +58,10 @@ exports.scraper = functions
             const url = await a.evaluate(node => node.href);
             const image = await a.$eval('.blogcapsule_Image_Nh_xZ', node => node.style.backgroundImage.slice(5, -2));
             
-            docRef = await db.collection("news_data").add({
-              title, url, image
-            });
+            await addArticleIfNotExists(title, {title, url, image, source: 'counter-strike.net'});
         }
 
-        //htlv
+        //hltv
         await page.goto('https://www.hltv.org/news/archive/2024/May', { waitUntil: 'networkidle0' });
         articles = await page.$$('.article');
 
@@ -51,9 +71,7 @@ exports.scraper = functions
             const url = await a.evaluate(node => node.href);
             const image = await a.$eval('img', node => node.src);
             
-            docRef = await db.collection("news_data").add({
-              title, url, image
-            });
+            await addArticleIfNotExists(title, {title, url, image, date, source: 'hltv.org'});
         }
 
         //dust2
@@ -71,9 +89,7 @@ exports.scraper = functions
                 const url = await a.$eval('a', element => element.href);
                 const image = await a.$eval('img', element => element.src);
                 
-                docRef = await db.collection("news_data").add({
-                  title, url, image
-                });
+                await addArticleIfNotExists(title, {title, url, image, date, source: 'dust2.us'});
             }
         }
 
@@ -97,12 +113,13 @@ exports.scraper = functions
                 await a.waitForSelector(imageSelector, { timeout: 10000 });
                 const image = await a.$eval(imageSelector, img => img.src);
                 
-                docRef = await db.collection("news").add({
-                  title, url, image
-                });
+                await addArticleIfNotExists(title, {title, url, image, date, author, source: 'dbltap.com'});
             }
         }
-        console.log(`Data stored successfully with ID: ${docRef.id}`);
+
+        // Commit the batch
+        await batch.commit();
+        console.log("Data update completed successfully");
       } catch (error) {
         console.error("Error in Cloud Function:", error);
       } finally {
