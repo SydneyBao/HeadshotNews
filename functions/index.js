@@ -63,8 +63,10 @@ exports.scraper = functions
         }
 
         //hltv
-        await page.goto('https://www.hltv.org/news/archive/2024/May', { waitUntil: 'networkidle0' });
-        articles = await page.$$('.article');
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; 
+        await page.goto(`https://www.hltv.org/news/archive/${year}/${month}`, { waitUntil: 'networkidle0' });
 
         for (const a of articles) {
             const title = await a.$eval('.newstext', node => node.innerText);
