@@ -49,6 +49,10 @@ exports.scraper = functions
         });
 
         page = await browser.newPage();
+
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; 
         
         // Counter-Strike.net
         await page.goto('https://www.counter-strike.net/news', { waitUntil: 'networkidle0' });
@@ -63,9 +67,6 @@ exports.scraper = functions
         }
 
         //hltv
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1; 
         await page.goto(`https://www.hltv.org/news/archive/${year}/${month}`, { waitUntil: 'networkidle0' });
 
         for (const a of articles) {
@@ -101,26 +102,28 @@ exports.scraper = functions
         articles = await page.$$('article');
 
         for (const a of articles) {
-            // let author;
-            // try {
-            //     author = (await page.evaluate(el => el.querySelector('h4').textContent, a)).split('|')[0].trim();
-            // } catch {
-            //     author = (await page.evaluate(el => el.querySelector('h5').textContent, a)).split('|')[0].trim();
-            // }
+            let author;
+            try {
+                author = (await page.evaluate(el => el.querySelector('h4').textContent, a)).split('|')[0].trim();
+            } catch {
+                author = (await page.evaluate(el => el.querySelector('h5').textContent, a)).split('|')[0].trim();
+            }
     
             if (author !== 'Max Mallow' && author !== 'Alexandra Hobbs' && author !== 'Conner Dejecacion') {
                 const title = await page.evaluate(el => el.querySelector('h3').textContent, a);
-                //const date = await page.evaluate(el => el.querySelector('time').textContent, a);
+                const date = await page.evaluate(el => el.querySelector('time').textContent, a);
+                
                 const url = await page.evaluate(el => el.querySelector('a').href, a);
                 const imageSelector = 'img';
                 await a.waitForSelector(imageSelector, { timeout: 10000 });
                 const image = await a.$eval(imageSelector, img => img.src);
                 
-                await addArticleIfNotExists(title, {title, url, image, source: 'dbltap.com'});
+                if (date.slice(0, 4) == year) {
+                  await addArticleIfNotExists(title, {title, url, image, source: 'dbltap.com'});
+                }
             }
         }
 
-        // Commit the batch
         await batch.commit();
         console.log("Data update completed successfully");
       } catch (error) {
