@@ -97,7 +97,7 @@ exports.scraper = functions
                 await a.waitForSelector(imageSelector, { timeout: 10000 });
                 const image = await a.$eval(imageSelector, img => img.src);
                 
-                docRef = await db.collection("news_data").add({
+                docRef = await db.collection("news").add({
                   title, url, image
                 });
             }
