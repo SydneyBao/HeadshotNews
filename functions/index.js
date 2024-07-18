@@ -28,6 +28,7 @@ exports.scraper = functions
 
       function shortenDocId(title) {
         const maxBytes = 1500;
+        title = title.replace(/\./g, '');
         let bytes = Buffer.byteLength(title, 'utf8');
         if (bytes < maxBytes) return title;
 
