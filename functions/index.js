@@ -67,11 +67,11 @@ exports.scraper = functions
 
         for (const a of articles) {
             const title = await a.$eval('.newstext', node => node.innerText);
-            const date = await a.$eval('.newsrecent', node => node.innerText);
+            //const date = await a.$eval('.newsrecent', node => node.innerText);
             const url = await a.evaluate(node => node.href);
             const image = await a.$eval('img', node => node.src);
             
-            await addArticleIfNotExists(title, {title, url, image, date, source: 'hltv.org'});
+            await addArticleIfNotExists(title, {title, url, image, source: 'hltv.org'});
         }
 
         //dust2
@@ -79,7 +79,7 @@ exports.scraper = functions
         const dateHeaders = await page.$$('.group-header');
         
         for (let d of dateHeaders) {
-            const date = await page.evaluate(element => element.textContent, d);
+            //const date = await page.evaluate(element => element.textContent, d);
             
             const articleSelectorHandle = await page.evaluateHandle(el => el.parentElement, d);
             const articles = await articleSelectorHandle.$$('.archive-news-item');
@@ -89,7 +89,7 @@ exports.scraper = functions
                 const url = await a.$eval('a', element => element.href);
                 const image = await a.$eval('img', element => element.src);
                 
-                await addArticleIfNotExists(title, {title, url, image, date, source: 'dust2.us'});
+                await addArticleIfNotExists(title, {title, url, image, source: 'dust2.us'});
             }
         }
 
@@ -98,22 +98,22 @@ exports.scraper = functions
         articles = await page.$$('article');
 
         for (const a of articles) {
-            let author;
-            try {
-                author = (await page.evaluate(el => el.querySelector('h4').textContent, a)).split('|')[0].trim();
-            } catch {
-                author = (await page.evaluate(el => el.querySelector('h5').textContent, a)).split('|')[0].trim();
-            }
+            // let author;
+            // try {
+            //     author = (await page.evaluate(el => el.querySelector('h4').textContent, a)).split('|')[0].trim();
+            // } catch {
+            //     author = (await page.evaluate(el => el.querySelector('h5').textContent, a)).split('|')[0].trim();
+            // }
     
             if (author !== 'Max Mallow' && author !== 'Alexandra Hobbs' && author !== 'Conner Dejecacion') {
                 const title = await page.evaluate(el => el.querySelector('h3').textContent, a);
-                const date = await page.evaluate(el => el.querySelector('time').textContent, a);
+                //const date = await page.evaluate(el => el.querySelector('time').textContent, a);
                 const url = await page.evaluate(el => el.querySelector('a').href, a);
                 const imageSelector = 'img';
                 await a.waitForSelector(imageSelector, { timeout: 10000 });
                 const image = await a.$eval(imageSelector, img => img.src);
                 
-                await addArticleIfNotExists(title, {title, url, image, date, author, source: 'dbltap.com'});
+                await addArticleIfNotExists(title, {title, url, image, source: 'dbltap.com'});
             }
         }
 
