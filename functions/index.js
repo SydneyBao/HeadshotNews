@@ -29,6 +29,7 @@ exports.scraper = functions
       function shortenDocId(title) {
         const maxBytes = 1500;
         title = title.replace(/\./g, '');
+        title = title.charAt(0).toUpperCase() + title.slice(1);
         let bytes = Buffer.byteLength(title, 'utf8');
         if (bytes < maxBytes) return title;
 
@@ -73,7 +74,20 @@ exports.scraper = functions
             const title = await a.$eval('.newstext', node => node.innerText);
             //const date = await a.$eval('.newsrecent', node => node.innerText);
             const url = await a.evaluate(node => node.href);
-            const image = await a.$eval('img', node => node.src);
+            const flag = await a.$eval('img', node => node.alt);
+
+            let image;
+            if (flag == "Saudi Arabia") {
+              image = "https://cdn.britannica.com/79/5779-050-46C999AF/Flag-Saudi-Arabia.jpg"
+            } else if (flag == "Brazil") {
+              image = "https://cdn.britannica.com/47/6847-004-7D668BB0/Flag-Brazil.jpg"
+            } else if (flag == "Denmark") {
+              image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_dRTRgh2t_ffybz6XN94k0ghlA8H3eiqeaA&s"
+            } else if (flag == "Russia") {
+              image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSBSsV2up86rvStJSG-tDxoYiHfyl-1DVY5A&s"
+            } else {
+              image = await a.$eval('img', node => node.src);
+            } 
             
             await addArticleIfNotExists(title, {title, url, image, source: 'hltv.org'});
         }
