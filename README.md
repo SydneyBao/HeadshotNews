@@ -1,2 +1,2 @@
-Find the Completed Website at [Headshot News](http://headshotnews.com/)!
+This news aggregator uses Puppeteer to scrape the titles, URLs, and images from articles on popular Esports Counter-Strike websites including counter-strike.net, dust2.us, and hltv.org. Using Cloud Functions, the latest articles are scraped and stored in the Firestore Database daily. The UX design for this website can be found in the HeadshotNewsUI repository. Find the Completed Website at [Headshot News](http://headshotnews.com/)!
 
